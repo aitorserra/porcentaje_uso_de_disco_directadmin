@@ -1,4 +1,4 @@
-#!/usr/local/bin/php
+#!/usr/bin/env php
 <?php
 $df_output = [];
 exec('df -h --output=source,target,size,used,avail,pcent 2>/dev/null', $df_output);
@@ -41,7 +41,7 @@ for ($i = 1; $i < count($df_output); $i++) {
 <tbody>
 <?php foreach ($rows as $k => $r): ?>
 <?php
-$free_pct = 100 - (int)$r['pcent'];
+$free_pct = max(0, min(100, 100 - (int)$r['pcent']));
 $gray = 255 - round($free_pct * 2.55);
 $bar_color = sprintf('#%02x%02x%02x', $gray, $gray, $gray);
 $row_bg = ($k % 2 === 0) ? '#f9f9f9' : '#ffffff';

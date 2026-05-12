@@ -5,13 +5,13 @@ Plugin para el panel de administración DirectAdmin que muestra una tabla con to
 ## Requisitos
 
 - DirectAdmin instalado en el servidor
-- PHP disponible en `/usr/local/bin/php`
+- PHP disponible en el `PATH` del sistema
 
 ## Instalación
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/aitorserra/Disk-usage-percentage-DirectAdmin.git
+git clone git@github.com:aitorserra/porcentaje_uso_de_disco_directadmin.git
 
 # Copiar el plugin al directorio de plugins de DirectAdmin
 cp -r Disk-usage-percentage-DirectAdmin/disk_partitions /usr/local/directadmin/plugins/
@@ -51,7 +51,7 @@ El plugin está disponible solo para el nivel **admin** de DirectAdmin:
 
 ## Diseño accesible
 
-La barra de porcentaje libre usa una **escala de grises**: más claro indica menos ocupación y el negro (100%) indica partición completamente llena. Esto es legible para personas con daltonismo.
+La barra de porcentaje libre usa una **escala de grises**: más claro indica menos espacio libre y más oscuro indica más espacio libre. Esto es legible para personas con daltonismo.
 
 ## Desinstalación
 
@@ -63,4 +63,3 @@ systemctl restart directadmin
 ## Licencia
 
 MIT
-# Disk-usage-percentage-DirectAdmin

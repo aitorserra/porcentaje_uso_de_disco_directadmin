@@ -1,9 +1,11 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -eu
 
 PLUGIN_NAME="disk_partitions"
 DA_PLUGINS_DIR="/usr/local/directadmin/plugins"
 PLUGIN_DIR="${DA_PLUGINS_DIR}/${PLUGIN_NAME}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SOURCE_DIR="${SCRIPT_DIR}/${PLUGIN_NAME}"
 
 if [ ! -d "$DA_PLUGINS_DIR" ]; then
     echo "Error: DirectAdmin plugins directory not found at ${DA_PLUGINS_DIR}"
@@ -11,8 +13,15 @@ if [ ! -d "$DA_PLUGINS_DIR" ]; then
     exit 1
 fi
 
+if [ ! -d "$SOURCE_DIR" ]; then
+    echo "Error: Plugin source directory not found at ${SOURCE_DIR}"
+    exit 1
+fi
+
 echo "Installing ${PLUGIN_NAME} plugin..."
-cp -r "$(dirname "$0")/${PLUGIN_NAME}" "${PLUGIN_DIR}"
+rm -rf "${PLUGIN_DIR}"
+mkdir -p "${PLUGIN_DIR}"
+cp -R "${SOURCE_DIR}/." "${PLUGIN_DIR}/"
 
 chmod 755 "${PLUGIN_DIR}/admin/index.html"
 chmod 755 "${PLUGIN_DIR}/scripts/install.sh"

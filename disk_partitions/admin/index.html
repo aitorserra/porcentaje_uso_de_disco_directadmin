@@ -1,0 +1,67 @@
+#!/usr/local/bin/php
+<?php
+$df_output = [];
+exec('df -h --output=source,target,size,used,avail,pcent 2>/dev/null', $df_output);
+
+if (count($df_output) < 2) {
+    exec('df -h 2>/dev/null', $df_raw);
+    echo "<h2>Disk Partitions</h2>\n";
+    echo "<p>Unable to parse disk information.</p>\n";
+    echo "<pre>" . htmlspecialchars(implode("\n", $df_raw)) . "</pre>\n";
+    exit(0);
+}
+
+$rows = [];
+for ($i = 1; $i < count($df_output); $i++) {
+    $line = preg_split('/\s+/', trim($df_output[$i]));
+    if (count($line) >= 6) {
+        $rows[] = [
+            'device'   => $line[0],
+            'mount'    => $line[1],
+            'size'     => $line[2],
+            'used'     => $line[3],
+            'avail'    => $line[4],
+            'pcent'    => rtrim($line[5], '%'),
+        ];
+    }
+}
+?>
+<h2>Disk Partitions</h2>
+<table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:13px;">
+<thead>
+<tr style="background:#2c3e50;color:#fff;">
+  <th style="padding:8px 12px;text-align:left;">Device</th>
+  <th style="padding:8px 12px;text-align:left;">Mount</th>
+  <th style="padding:8px 12px;text-align:right;">Total</th>
+  <th style="padding:8px 12px;text-align:right;">Used</th>
+  <th style="padding:8px 12px;text-align:right;">Free</th>
+  <th style="padding:8px 12px;text-align:center;">Free %</th>
+</tr>
+</thead>
+<tbody>
+<?php foreach ($rows as $k => $r): ?>
+<?php
+$free_pct = 100 - (int)$r['pcent'];
+$gray = 255 - round($free_pct * 2.55);
+$bar_color = sprintf('#%02x%02x%02x', $gray, $gray, $gray);
+$row_bg = ($k % 2 === 0) ? '#f9f9f9' : '#ffffff';
+?>
+<tr style="background:<?php echo $row_bg; ?>;">
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;"><?php echo htmlspecialchars($r['device']); ?></td>
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;"><?php echo htmlspecialchars($r['mount']); ?></td>
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;"><?php echo htmlspecialchars($r['size']); ?></td>
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;"><?php echo htmlspecialchars($r['used']); ?></td>
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;"><?php echo htmlspecialchars($r['avail']); ?></td>
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:center;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+      <div style="width:80px;height:14px;background:#e8e8e8;border-radius:7px;overflow:hidden;">
+        <div style="width:<?php echo $free_pct; ?>%;height:100%;background:<?php echo $bar_color; ?>;border-radius:7px;"></div>
+      </div>
+      <span style="font-size:12px;font-weight:bold;color:<?php echo $bar_color; ?>;"><?php echo $free_pct; ?>%</span>
+    </div>
+  </td>
+</tr>
+<?php endforeach; ?>
+</tbody>
+</table>
+<p style="font-size:11px;color:#999;margin-top:12px;">Generated: <?php echo date('Y-m-d H:i:s'); ?></p>

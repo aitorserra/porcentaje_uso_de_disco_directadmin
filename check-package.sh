@@ -6,11 +6,7 @@ DIST_DIR="$ROOT_DIR/dist"
 ARCHIVE_PATH="${1:-}"
 
 if [ -z "$ARCHIVE_PATH" ]; then
-  if [ -f "$DIST_DIR/disk_partitions.tar.gz" ]; then
-    ARCHIVE_PATH="$DIST_DIR/disk_partitions.tar.gz"
-  else
-    ARCHIVE_PATH="$(find "$DIST_DIR" -maxdepth 1 -type f -name 'disk_partitions-*.tar.gz' | sort | tail -n 1)"
-  fi
+  ARCHIVE_PATH="$DIST_DIR/disk_partitions.tar.gz"
 fi
 
 if [ -z "$ARCHIVE_PATH" ] || [ ! -f "$ARCHIVE_PATH" ]; then

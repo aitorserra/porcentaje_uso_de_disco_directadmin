@@ -1,3 +1,7 @@
+![Captura principal](captura.png)
+
+![Captura secundaria](captura2.png)
+
 # Disk Usage Percentage - DirectAdmin Plugin
 
 Plugin para el panel de administración DirectAdmin que muestra una tabla con todas las particiones de disco del servidor, indicando el tamaño total, el espacio ocupado y el porcentaje de espacio libre.
@@ -80,26 +84,28 @@ No hace falta ningún `chmod`, copia manual ni ajuste posterior si el servidor t
 
 ## Actualización
 
-La actualización normal del plugin se hace repitiendo el mismo proceso de instalación, sin borrar antes el plugin existente.
+La actualización correcta del plugin debe hacerse desde el propio **Plugin Manager** usando el mecanismo de actualización del plugin, no intentando añadirlo otra vez como si fuera nuevo.
 
-### Actualización desde URL
+### Actualización recomendada
 
 En **Admin Level > Plugin Manager**:
 
-1. vuelve a usar `Paste URL to tar gzip file`
-2. pega la misma URL pública:
+1. abre el plugin ya instalado
+2. usa la acción de actualización que ofrece DirectAdmin para el plugin
+3. DirectAdmin utilizará esta `update_url` definida en `plugin.conf`:
 
 ```text
 https://github.com/aitorserra/porcentaje_uso_de_disco_directadmin/raw/main/dist/disk_partitions.tar.gz
 ```
 
-3. instala encima de la versión actual
-
 ### Actualización subiendo archivo
+
+Si tu versión de DirectAdmin no ofrece actualización directa desde `update_url`, la alternativa práctica es:
 
 1. genera el paquete nuevo con `./package.sh`
 2. valida el paquete con `./check-package.sh`
-3. súbelo otra vez desde **Plugin Manager**
+3. desinstala el plugin actual
+4. vuelve a instalarlo desde URL o desde el archivo nuevo
 
 ### Cuándo conviene desinstalar antes
 
@@ -107,7 +113,7 @@ https://github.com/aitorserra/porcentaje_uso_de_disco_directadmin/raw/main/dist/
 - si añades migraciones o datos persistentes en futuras versiones
 - si DirectAdmin deja restos de una versión anterior y detectas comportamiento incoherente
 
-En la versión actual del plugin no hace falta borrarlo antes para actualizarlo.
+Con las versiones recientes de DirectAdmin, volver a usar `Paste URL to tar gzip file` sobre un plugin ya existente puede fallar con `Plugin with that ID already exists`, porque esa acción se trata como alta de plugin nuevo, no como actualización.
 
 ## Instalación manual
 

@@ -12,6 +12,12 @@ Plugin para el panel de administración DirectAdmin que muestra una tabla con to
 
 La forma recomendada es instalarlo como un plugin comprimido desde el **Plugin Manager** de DirectAdmin, sin copiar archivos a mano.
 
+### Descarga directa
+
+Puedes descargar directamente el paquete listo para instalar aquí:
+
+- `https://github.com/aitorserra/porcentaje_uso_de_disco_directadmin/raw/main/dist/disk_partitions-1.1.0.tar.gz`
+
 ### 1. Generar el paquete `.tar.gz`
 
 ```bash

@@ -6,7 +6,11 @@ DIST_DIR="$ROOT_DIR/dist"
 ARCHIVE_PATH="${1:-}"
 
 if [ -z "$ARCHIVE_PATH" ]; then
-  ARCHIVE_PATH="$(find "$DIST_DIR" -maxdepth 1 -type f -name 'disk_partitions-*.tar.gz' | sort | tail -n 1)"
+  if [ -f "$DIST_DIR/disk_partitions.tar.gz" ]; then
+    ARCHIVE_PATH="$DIST_DIR/disk_partitions.tar.gz"
+  else
+    ARCHIVE_PATH="$(find "$DIST_DIR" -maxdepth 1 -type f -name 'disk_partitions-*.tar.gz' | sort | tail -n 1)"
+  fi
 fi
 
 if [ -z "$ARCHIVE_PATH" ] || [ ! -f "$ARCHIVE_PATH" ]; then
@@ -34,17 +38,17 @@ require_mode() {
   fi
 }
 
-require_entry "disk_partitions/plugin.conf"
-require_entry "disk_partitions/admin/index.html"
-require_entry "disk_partitions/admin/index.php"
-require_entry "disk_partitions/scripts/install.sh"
-require_entry "disk_partitions/scripts/uninstall.sh"
-require_entry "disk_partitions/hooks/admin_txt.html"
-require_entry "disk_partitions/images/admin_icon.svg"
+require_entry "./plugin.conf"
+require_entry "./admin/index.html"
+require_entry "./admin/index.php"
+require_entry "./scripts/install.sh"
+require_entry "./scripts/uninstall.sh"
+require_entry "./hooks/admin_txt.html"
+require_entry "./images/admin_icon.svg"
 
-require_mode "disk_partitions/admin/index.html" "-rwxr-xr-x"
-require_mode "disk_partitions/admin/index.php" "-rw-r--r--"
-require_mode "disk_partitions/scripts/install.sh" "-rwxr-xr-x"
-require_mode "disk_partitions/scripts/uninstall.sh" "-rwxr-xr-x"
+require_mode "./admin/index.html" "-rwxr-xr-x"
+require_mode "./admin/index.php" "-rw-r--r--"
+require_mode "./scripts/install.sh" "-rwxr-xr-x"
+require_mode "./scripts/uninstall.sh" "-rwxr-xr-x"
 
 echo "Package check passed: $ARCHIVE_PATH"

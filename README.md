@@ -16,7 +16,7 @@ La forma recomendada es instalarlo como un plugin comprimido desde el **Plugin M
 
 Puedes descargar directamente el paquete listo para instalar aquí:
 
-- `https://github.com/aitorserra/porcentaje_uso_de_disco_directadmin/raw/main/dist/disk_partitions-1.1.0.tar.gz`
+- `https://github.com/aitorserra/porcentaje_uso_de_disco_directadmin/raw/main/dist/disk_partitions.tar.gz`
 
 ### 1. Generar el paquete `.tar.gz`
 
@@ -25,6 +25,12 @@ Puedes descargar directamente el paquete listo para instalar aquí:
 ```
 
 Esto crea un fichero en `dist/` con este formato:
+
+```text
+dist/disk_partitions.tar.gz
+```
+
+También deja una copia versionada:
 
 ```text
 dist/disk_partitions-1.1.0.tar.gz
@@ -46,8 +52,7 @@ El paquete ya incluye:
 
 La comprobación valida que el `.tar.gz` contiene:
 
-- estructura `disk_partitions/...`
-- `plugin.conf`
+- `plugin.conf` en la raíz del archivo
 - punto de entrada `admin/index.html`
 - renderer `admin/index.php`
 - scripts `scripts/install.sh` y `scripts/uninstall.sh`

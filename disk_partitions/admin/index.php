@@ -18,6 +18,27 @@ function renderMessage(string $title, string $message, string $details = ''): vo
     echo "</div>\n";
 }
 
+function pluginVersion(string $pluginRoot): string
+{
+    $configFile = $pluginRoot . '/plugin.conf';
+    if (!is_readable($configFile)) {
+        return 'unknown';
+    }
+
+    $lines = file($configFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if (!is_array($lines)) {
+        return 'unknown';
+    }
+
+    foreach ($lines as $line) {
+        if (str_starts_with($line, 'version=')) {
+            return trim(substr($line, strlen('version='))) ?: 'unknown';
+        }
+    }
+
+    return 'unknown';
+}
+
 function isExecAvailable(): bool
 {
     if (!function_exists('exec')) {
@@ -79,6 +100,8 @@ $excludedTypes = [
     'tmpfs',
     'tracefs',
 ];
+
+$pluginVersion = pluginVersion(dirname(__DIR__));
 
 $rows = [];
 $ignoredRows = 0;
@@ -152,10 +175,10 @@ $rowBg = ($k % 2 === 0) ? '#f9f9f9' : '#ffffff';
   <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;"><?php echo h($row['avail']); ?></td>
   <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:center;">
     <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
-      <div style="width:80px;height:14px;background:#e8e8e8;border-radius:7px;overflow:hidden;">
-        <div style="width:<?php echo $row['free_pct']; ?>%;height:100%;background:<?php echo $barColor; ?>;border-radius:7px;"></div>
+      <div style="width:80px;height:14px;background:#e8e8e8;overflow:hidden;">
+        <div style="width:<?php echo $row['free_pct']; ?>%;height:100%;background:<?php echo $barColor; ?>;"></div>
       </div>
-      <span style="font-size:12px;font-weight:bold;color:<?php echo $barColor; ?>;"><?php echo $row['free_pct']; ?>%</span>
+      <span style="font-size:12px;font-weight:bold;color:#333;"><?php echo $row['free_pct']; ?>%</span>
     </div>
   </td>
 </tr>
@@ -164,6 +187,7 @@ $rowBg = ($k % 2 === 0) ? '#f9f9f9' : '#ffffff';
 </table>
 <?php endif; ?>
 <p style="font-size:11px;color:#999;margin-top:12px;">
+Version: <?php echo h($pluginVersion); ?> |
 Generated: <?php echo h(date('Y-m-d H:i:s')); ?>
 <?php if ($ignoredRows > 0): ?>
  | Filtered pseudo filesystems: <?php echo (int) $ignoredRows; ?>

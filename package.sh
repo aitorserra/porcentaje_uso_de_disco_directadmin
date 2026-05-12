@@ -6,9 +6,13 @@ PLUGIN_DIR="$ROOT_DIR/disk_partitions"
 DIST_DIR="$ROOT_DIR/dist"
 VERSION="$(awk -F= '/^version=/{print $2}' "$PLUGIN_DIR/plugin.conf")"
 ARCHIVE_NAME="disk_partitions.tar.gz"
-VERSIONED_ARCHIVE_NAME="disk_partitions-${VERSION}.tar.gz"
 TMP_DIR="$(mktemp -d)"
 STAGE_DIR="$TMP_DIR/stage"
+
+if [ -z "$VERSION" ]; then
+  echo "Error: version not found in $PLUGIN_DIR/plugin.conf"
+  exit 1
+fi
 
 cleanup() {
   rm -rf "$TMP_DIR"
@@ -24,7 +28,6 @@ chmod 644 "$STAGE_DIR/admin/index.php" "$STAGE_DIR/plugin.conf" "$STAGE_DIR/hook
 rm -f "$STAGE_DIR/admin/.php-bin"
 
 tar --sort=name --owner=0 --group=0 --numeric-owner -C "$STAGE_DIR" -czf "$DIST_DIR/$ARCHIVE_NAME" .
-cp "$DIST_DIR/$ARCHIVE_NAME" "$DIST_DIR/$VERSIONED_ARCHIVE_NAME"
 
 printf 'Created %s\n' "$DIST_DIR/$ARCHIVE_NAME"
-printf 'Created %s\n' "$DIST_DIR/$VERSIONED_ARCHIVE_NAME"
+printf 'Plugin version: %s\n' "$VERSION"

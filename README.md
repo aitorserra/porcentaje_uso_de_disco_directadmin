@@ -10,15 +10,30 @@ Plugin para el panel de administración DirectAdmin que muestra una tabla con to
 
 ## Instalación desde Plugin Manager
 
-La forma recomendada es instalarlo como un plugin comprimido desde el **Plugin Manager** de DirectAdmin, sin copiar archivos a mano.
+La forma recomendada es instalarlo directamente desde el **Plugin Manager** de DirectAdmin usando la URL pública del paquete, sin descargarlo ni copiar archivos a mano.
 
 ### Descarga directa
 
-Puedes descargar directamente el paquete listo para instalar aquí:
+URL del paquete listo para instalar:
 
 - `https://github.com/aitorserra/porcentaje_uso_de_disco_directadmin/raw/main/dist/disk_partitions.tar.gz`
 
-### 1. Generar el paquete `.tar.gz`
+### Instalación directa por URL en DirectAdmin
+
+En **Admin Level > Plugin Manager**:
+
+1. usa la opción que muestra `Paste URL to tar gzip file`
+2. pega esta URL:
+
+```text
+https://github.com/aitorserra/porcentaje_uso_de_disco_directadmin/raw/main/dist/disk_partitions.tar.gz
+```
+
+3. instala el plugin
+
+No hace falta descargar el fichero previamente ni subirlo manualmente si el servidor puede acceder a GitHub.
+
+### Generar el paquete `.tar.gz` localmente
 
 ```bash
 ./package.sh
@@ -30,12 +45,6 @@ Esto crea un fichero en `dist/` con este formato:
 dist/disk_partitions.tar.gz
 ```
 
-También deja una copia versionada:
-
-```text
-dist/disk_partitions-1.1.0.tar.gz
-```
-
 El paquete ya incluye:
 
 - estructura correcta para DirectAdmin
@@ -44,7 +53,7 @@ El paquete ya incluye:
 - permisos ejecutables en `admin/index.html` y `scripts/*.sh`
 - detección automática y persistencia local de la ruta de `php-cli` durante la instalación
 
-### 2. Verificar el paquete antes de subirlo
+### Verificar el paquete antes de subirlo
 
 ```bash
 ./check-package.sh
@@ -59,15 +68,46 @@ La comprobación valida que el `.tar.gz` contiene:
 - icono `images/admin_icon.svg`
 - permisos ejecutables correctos en los entrypoints
 
-### 3. Instalarlo desde DirectAdmin
+### Instalarlo desde DirectAdmin subiendo el archivo
 
 En **Admin Level > Plugin Manager**:
 
 1. usa la opción de subir/instalar plugin desde archivo
 2. selecciona el `.tar.gz` generado
-3. deja que DirectAdmin ejecute `disk_partitions/scripts/install.sh`
+3. deja que DirectAdmin ejecute `scripts/install.sh`
 
 No hace falta ningún `chmod`, copia manual ni ajuste posterior si el servidor tiene `php-cli` y `df`.
+
+## Actualización
+
+La actualización normal del plugin se hace repitiendo el mismo proceso de instalación, sin borrar antes el plugin existente.
+
+### Actualización desde URL
+
+En **Admin Level > Plugin Manager**:
+
+1. vuelve a usar `Paste URL to tar gzip file`
+2. pega la misma URL pública:
+
+```text
+https://github.com/aitorserra/porcentaje_uso_de_disco_directadmin/raw/main/dist/disk_partitions.tar.gz
+```
+
+3. instala encima de la versión actual
+
+### Actualización subiendo archivo
+
+1. genera el paquete nuevo con `./package.sh`
+2. valida el paquete con `./check-package.sh`
+3. súbelo otra vez desde **Plugin Manager**
+
+### Cuándo conviene desinstalar antes
+
+- si cambias el `id` del plugin
+- si añades migraciones o datos persistentes en futuras versiones
+- si DirectAdmin deja restos de una versión anterior y detectas comportamiento incoherente
+
+En la versión actual del plugin no hace falta borrarlo antes para actualizarlo.
 
 ## Instalación manual
 
@@ -120,6 +160,7 @@ La barra de porcentaje libre usa una **escala de grises**: más claro indica men
 - Las filas se ordenan por mayor porcentaje de uso para destacar antes las particiones con más riesgo.
 - Si `php` o `df` no están disponibles, el plugin muestra un error visible en la interfaz en vez de fallar en silencio.
 - La instalación guarda la ruta detectada de `php-cli` en el plugin para no depender del `PATH` del servicio de DirectAdmin.
+- La interfaz muestra la versión instalada leyendo `plugin.conf`, útil para comprobar rápidamente si una actualización se ha aplicado.
 
 ## Desinstalación
 

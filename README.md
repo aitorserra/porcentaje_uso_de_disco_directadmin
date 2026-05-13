@@ -1,7 +1,5 @@
 ![Captura principal](captura.png)
 
-![Captura secundaria](captura2.png)
-
 # Disk Usage Percentage - DirectAdmin Plugin
 
 Plugin para el panel de administración DirectAdmin que muestra una tabla con todas las particiones de disco del servidor, indicando el tamaño total, el espacio ocupado y el porcentaje de uso. Al hacer click en un `Mount`, lista el contenido de esa ruta.

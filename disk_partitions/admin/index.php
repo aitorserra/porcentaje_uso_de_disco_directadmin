@@ -18,27 +18,6 @@ function renderMessage(string $title, string $message, string $details = ''): vo
     echo "</div>\n";
 }
 
-function pluginVersion(string $pluginRoot): string
-{
-    $configFile = $pluginRoot . '/plugin.conf';
-    if (!is_readable($configFile)) {
-        return 'unknown';
-    }
-
-    $lines = file($configFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    if (!is_array($lines)) {
-        return 'unknown';
-    }
-
-    foreach ($lines as $line) {
-        if (str_starts_with($line, 'version=')) {
-            return trim(substr($line, strlen('version='))) ?: 'unknown';
-        }
-    }
-
-    return 'unknown';
-}
-
 function isExecAvailable(): bool
 {
     if (!function_exists('exec')) {
@@ -53,6 +32,20 @@ function formatKilobytes(int $kilobytes): string
 {
     $units = ['KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
     $size = (float) $kilobytes;
+    $unit = 0;
+
+    while ($size >= 1024 && $unit < count($units) - 1) {
+        $size /= 1024;
+        $unit++;
+    }
+
+    return sprintf($size >= 10 || $unit === 0 ? '%.0f %s' : '%.1f %s', $size, $units[$unit]);
+}
+
+function formatBytes(int $bytes): string
+{
+    $units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
+    $size = (float) max(0, $bytes);
     $unit = 0;
 
     while ($size >= 1024 && $unit < count($units) - 1) {
@@ -101,10 +94,7 @@ $excludedTypes = [
     'tracefs',
 ];
 
-$pluginVersion = pluginVersion(dirname(__DIR__));
-
 $rows = [];
-$ignoredRows = 0;
 
 for ($i = 1, $count = count($output); $i < $count; $i++) {
     $line = trim($output[$i]);
@@ -119,12 +109,10 @@ for ($i = 1, $count = count($output); $i < $count; $i++) {
 
     [$device, $type, $blocks, $used, $available, $capacity, $mount] = $parts;
     if (in_array($type, $excludedTypes, true)) {
-        $ignoredRows++;
         continue;
     }
 
     $usedPct = max(0, min(100, (int) rtrim($capacity, '%')));
-    $freePct = 100 - $usedPct;
     $rows[] = [
         'device' => $device,
         'type' => $type,
@@ -133,7 +121,6 @@ for ($i = 1, $count = count($output); $i < $count; $i++) {
         'used' => formatKilobytes((int) $used),
         'avail' => formatKilobytes((int) $available),
         'used_pct' => $usedPct,
-        'free_pct' => $freePct,
     ];
 }
 
@@ -141,6 +128,59 @@ usort(
     $rows,
     static fn(array $left, array $right): int => [$right['used_pct'], $left['mount']] <=> [$left['used_pct'], $right['mount']]
 );
+
+$mountOptions = array_column($rows, 'mount');
+$selectedMount = isset($_GET['mount']) ? trim((string) $_GET['mount']) : '';
+$selectedMount = in_array($selectedMount, $mountOptions, true) ? $selectedMount : '';
+
+$directoryEntries = [];
+$directoryError = '';
+$directoryEntryLimit = 200;
+
+if ($selectedMount !== '') {
+    if (!is_dir($selectedMount)) {
+        $directoryError = 'The selected mount point is not a directory.';
+    } elseif (!is_readable($selectedMount)) {
+        $directoryError = 'The selected mount point is not readable by DirectAdmin.';
+    } else {
+        $entries = @scandir($selectedMount);
+        if ($entries === false) {
+            $directoryError = 'Unable to list the selected mount point.';
+        } else {
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+
+                $path = rtrim($selectedMount, '/');
+                $path = ($path === '' ? '/' : $path) . '/' . $entry;
+                $isDir = is_dir($path);
+
+                $directoryEntries[] = [
+                    'name' => $entry,
+                    'path' => $path,
+                    'type' => $isDir ? 'Directory' : 'File',
+                    'size' => $isDir ? '-' : formatBytes((int) @filesize($path)),
+                ];
+
+                if (count($directoryEntries) >= $directoryEntryLimit) {
+                    break;
+                }
+            }
+
+            usort(
+                $directoryEntries,
+                static function (array $left, array $right): int {
+                    if ($left['type'] !== $right['type']) {
+                        return $left['type'] <=> $right['type'];
+                    }
+
+                    return strcasecmp($left['name'], $right['name']);
+                }
+            );
+        }
+    }
+}
 
 ?>
 <h2>Disk Partitions</h2>
@@ -156,29 +196,33 @@ usort(
   <th style="padding:8px 12px;text-align:right;">Total</th>
   <th style="padding:8px 12px;text-align:right;">Used</th>
   <th style="padding:8px 12px;text-align:right;">Free</th>
-  <th style="padding:8px 12px;text-align:center;">Free %</th>
+  <th style="padding:8px 12px;text-align:center;">Used %</th>
 </tr>
 </thead>
 <tbody>
 <?php foreach ($rows as $k => $row): ?>
 <?php
-$gray = 255 - (int) round($row['free_pct'] * 2.55);
+$gray = 255 - (int) round($row['used_pct'] * 2.55);
 $barColor = sprintf('#%02x%02x%02x', $gray, $gray, $gray);
 $rowBg = ($k % 2 === 0) ? '#f9f9f9' : '#ffffff';
 ?>
 <tr style="background:<?php echo $rowBg; ?>;">
   <td style="padding:6px 12px;border-bottom:1px solid #eee;"><?php echo h($row['device']); ?></td>
   <td style="padding:6px 12px;border-bottom:1px solid #eee;"><?php echo h($row['type']); ?></td>
-  <td style="padding:6px 12px;border-bottom:1px solid #eee;"><?php echo h($row['mount']); ?></td>
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;">
+    <a href="?mount=<?php echo rawurlencode($row['mount']); ?>" style="color:#1f4f82;text-decoration:none;font-weight:600;">
+      <?php echo h($row['mount']); ?>
+    </a>
+  </td>
   <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;"><?php echo h($row['size']); ?></td>
   <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;"><?php echo h($row['used']); ?></td>
   <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;"><?php echo h($row['avail']); ?></td>
   <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:center;">
     <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
       <div style="width:80px;height:14px;background:#e8e8e8;overflow:hidden;">
-        <div style="width:<?php echo $row['free_pct']; ?>%;height:100%;background:<?php echo $barColor; ?>;"></div>
+        <div style="width:<?php echo $row['used_pct']; ?>%;height:100%;background:<?php echo $barColor; ?>;"></div>
       </div>
-      <span style="font-size:12px;font-weight:bold;color:#333;"><?php echo $row['free_pct']; ?>%</span>
+      <span style="font-size:12px;font-weight:bold;color:#333;"><?php echo $row['used_pct']; ?>%</span>
     </div>
   </td>
 </tr>
@@ -186,10 +230,41 @@ $rowBg = ($k % 2 === 0) ? '#f9f9f9' : '#ffffff';
 </tbody>
 </table>
 <?php endif; ?>
-<p style="font-size:11px;color:#999;margin-top:12px;">
-Version: <?php echo h($pluginVersion); ?> |
-Generated: <?php echo h(date('Y-m-d H:i:s')); ?>
-<?php if ($ignoredRows > 0): ?>
- | Filtered pseudo filesystems: <?php echo (int) $ignoredRows; ?>
+<?php if ($selectedMount !== ''): ?>
+<h3 style="margin-top:18px;">Contents of <?php echo h($selectedMount); ?></h3>
+<?php if ($directoryError !== ''): ?>
+<div style="padding:12px;border:1px solid #d9534f;background:#fdf2f2;color:#8a1f11;"><?php echo h($directoryError); ?></div>
+<?php else: ?>
+<table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:13px;margin-top:8px;">
+<thead>
+<tr style="background:#5d6d7e;color:#fff;">
+  <th style="padding:8px 12px;text-align:left;">Name</th>
+  <th style="padding:8px 12px;text-align:left;">Type</th>
+  <th style="padding:8px 12px;text-align:left;">Path</th>
+  <th style="padding:8px 12px;text-align:right;">Size</th>
+</tr>
+</thead>
+<tbody>
+<?php if (empty($directoryEntries)): ?>
+<tr>
+  <td colspan="4" style="padding:10px 12px;border-bottom:1px solid #eee;color:#666;">No visible entries found.</td>
+</tr>
+<?php else: ?>
+<?php foreach ($directoryEntries as $index => $entry): ?>
+<?php $entryBg = ($index % 2 === 0) ? '#f9f9f9' : '#ffffff'; ?>
+<tr style="background:<?php echo $entryBg; ?>;">
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;"><?php echo h($entry['name']); ?></td>
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;"><?php echo h($entry['type']); ?></td>
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;"><?php echo h($entry['path']); ?></td>
+  <td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right;"><?php echo h($entry['size']); ?></td>
+</tr>
+<?php endforeach; ?>
 <?php endif; ?>
-</p>
+</tbody>
+</table>
+<?php if (count($directoryEntries) >= $directoryEntryLimit): ?>
+<p style="font-size:11px;color:#999;margin-top:8px;">Showing the first <?php echo (int) $directoryEntryLimit; ?> entries.</p>
+<?php endif; ?>
+<?php endif; ?>
+<?php endif; ?>
+<p style="font-size:11px;color:#999;margin-top:12px;">by aitorserra</p>

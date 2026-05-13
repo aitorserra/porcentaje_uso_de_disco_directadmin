@@ -4,7 +4,7 @@
 
 # Disk Usage Percentage - DirectAdmin Plugin
 
-Plugin para el panel de administración DirectAdmin que muestra una tabla con todas las particiones de disco del servidor, indicando el tamaño total, el espacio ocupado y el porcentaje de espacio libre.
+Plugin para el panel de administración DirectAdmin que muestra una tabla con todas las particiones de disco del servidor, indicando el tamaño total, el espacio ocupado y el porcentaje de uso. Al hacer click en un `Mount`, lista el contenido de esa ruta.
 
 ## Requisitos
 
@@ -150,23 +150,23 @@ El plugin está disponible solo para el nivel **admin** de DirectAdmin:
 |---------|-------------|
 | Device  | Dispositivo de bloque (ej: `/dev/sda1`) |
 | Type    | Tipo de filesystem (ej: `xfs`, `ext4`) |
-| Mount   | Punto de montaje (ej: `/`, `/home`) |
+| Mount   | Punto de montaje clickable para listar su contenido (ej: `/`, `/home`) |
 | Total   | Tamaño total de la partición |
 | Used    | Espacio ocupado |
 | Free    | Espacio disponible |
-| Free %  | Porcentaje de espacio libre con barra visual en escala de grises |
+| Used %  | Porcentaje de espacio usado con barra visual en escala de grises |
 
 ## Diseño accesible
 
-La barra de porcentaje libre usa una **escala de grises**: más claro indica menos espacio libre y más oscuro indica más espacio libre. Esto es legible para personas con daltonismo.
+La barra de porcentaje usado usa una **escala de grises**: más claro indica menos uso y más oscuro indica más uso. Esto es legible para personas con daltonismo.
 
 ## Comportamiento
 
 - El plugin muestra solo filesystems relevantes para capacidad real y filtra pseudo-filesystems como `tmpfs`, `proc`, `sysfs`, `overlay` o `squashfs`.
 - Las filas se ordenan por mayor porcentaje de uso para destacar antes las particiones con más riesgo.
+- Al hacer click en un `Mount`, la interfaz recarga y lista el contenido legible de esa ruta debajo de la tabla.
 - Si `php` o `df` no están disponibles, el plugin muestra un error visible en la interfaz en vez de fallar en silencio.
 - La instalación guarda la ruta detectada de `php-cli` en el plugin para no depender del `PATH` del servicio de DirectAdmin.
-- La interfaz muestra la versión instalada leyendo `plugin.conf`, útil para comprobar rápidamente si una actualización se ha aplicado.
 
 ## Desinstalación
 

@@ -56,6 +56,21 @@ function formatBytes(int $bytes): string
     return sprintf($size >= 10 || $unit === 0 ? '%.0f %s' : '%.1f %s', $size, $units[$unit]);
 }
 
+function requestQueryParams(): array
+{
+    if (!empty($_GET) && is_array($_GET)) {
+        return $_GET;
+    }
+
+    $queryString = $_SERVER['QUERY_STRING'] ?? getenv('QUERY_STRING') ?: '';
+    if (!is_string($queryString) || $queryString === '') {
+        return [];
+    }
+
+    parse_str($queryString, $params);
+    return is_array($params) ? $params : [];
+}
+
 if (!isExecAvailable()) {
     renderMessage('Runtime error', 'PHP cannot execute shell commands because exec() is unavailable.');
     exit(0);
@@ -129,8 +144,9 @@ usort(
     static fn(array $left, array $right): int => [$right['used_pct'], $left['mount']] <=> [$left['used_pct'], $right['mount']]
 );
 
+$queryParams = requestQueryParams();
 $mountOptions = array_column($rows, 'mount');
-$selectedMount = isset($_GET['mount']) ? trim((string) $_GET['mount']) : '';
+$selectedMount = isset($queryParams['mount']) ? trim((string) $queryParams['mount']) : '';
 $selectedMount = in_array($selectedMount, $mountOptions, true) ? $selectedMount : '';
 
 $directoryEntries = [];
